@@ -811,12 +811,13 @@ class NMF:
             # Three-dimensional list. Shape: (1, factors, sequence length)
             'factors': [factors]
         }
-        d.display(d.HTML(filename=os.path.join(self._path, "html", "setup.html")))
+        if not kwargs.get('returnHTML', False) and not kwargs.get('returnData', False):
+            d.display(d.HTML(filename=os.path.join(self._path, "html", "setup.html")))
 
         js = f"""
          requirejs(['basic', 'ecco'], function(basic, ecco){{
             const viz_id = basic.init()
-            
+
             ecco.interactiveTokensAndFactorSparklines(viz_id, {data},
             {{
             'hltrCFG': {{'tokenization_config': {json.dumps(self.config['tokenizer_config'])}
@@ -825,7 +826,17 @@ class NMF:
          }}, function (err) {{
             console.log(err);
         }})"""
-        d.display(d.Javascript(js))
+
+        if not kwargs.get('returnHTML', False) and not kwargs.get('returnData', False):
+            d.display(d.Javascript(js))
+
+        if kwargs.get('returnHTML', False):
+            with open(os.path.join(self._path, "html", "setup.html")) as fp:
+                html = fp.read()
+            return html + f"<script>{js}<script>"
+
+        if kwargs.get('returnData', False):
+            return data
 
         if 'printJson' in kwargs and kwargs['printJson']:
             print(data)
